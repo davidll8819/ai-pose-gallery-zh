@@ -1556,8 +1556,20 @@ export async function generateCharacterImage(params: {
       recipe.costume.预览图 || recipe.costume.原图 || recipe.costume.缩略图,
       poseImagePath(recipe.pose),
     ].map(srcToPngDataUrl))
+    const uploads=await Promise.all(images.map(async image=>{
+      const id=crypto.randomUUID();const total=Math.ceil(image.length/12000)
+      for(let start=0;start<total;start+=4){await Promise.all(Array.from({length:Math.min(4,total-start)},async(_,offset)=>{
+        const index=start+offset;let success=false
+        for(let attempt=0;attempt<3;attempt++){
+          params.signal?.throwIfAborted()
+          try{const response=await fetch(`/api/uploads/${id}/${index}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({total,data:image.slice(index*12000,(index+1)*12000)}),signal:params.signal});if(response.ok){success=true;break}if(response.status<500)throw new Error('reference_upload_rejected')}catch(error){if(attempt===2||params.signal?.aborted)throw error}
+        }
+        if(!success)throw new Error('reference_upload_failed')
+      }))}
+      return id
+    }))
     const created = await fetch('/api/jobs', {method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({requestId:crypto.randomUUID(),prompt, images, locale:document.documentElement.lang.startsWith('en')?'en':'zh-CN'}), signal:params.signal})
+      body:JSON.stringify({requestId:crypto.randomUUID(),prompt, uploads, locale:document.documentElement.lang.startsWith('en')?'en':'zh-CN'}), signal:params.signal})
     const job = await created.json()
     if (!created.ok) throw new Error(job.error || 'generation_failed')
     const cancel = () => { void fetch(`/api/jobs/${job.id}/cancel`, {method:'POST'}) }

@@ -1,14 +1,14 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createImageGateway} from './image-gateway.mjs';
-const input = {prompt:'Combine the references', images:['data:image/png;base64,aGVsbG8='], locale:'en'};
+const input = {prompt:'Combine the references', images:Array(3).fill('data:image/png;base64,aGVsbG8='), locale:'en'};
 const env = {OPENAI_API_BASE:'https://gateway.invalid/api/v1/', OPENAI_API_KEY:'test-installation-key', IMAGE_MODEL:'selected-image-model'};
 test('uses installation configuration and multipart references', async () => {
   const gateway = createImageGateway({env, request:async (url, options) => {
     assert.equal(url, 'https://gateway.invalid/api/v1/images/edits');
     assert.equal(options.headers.Authorization, 'Bearer test-installation-key');
     assert.equal(options.body.get('model'), env.IMAGE_MODEL);
-    assert.equal(options.body.getAll('image[]').length, 1);
+    assert.equal(options.body.getAll('image[]').length, 3);
     return Response.json({data:[{b64_json:Buffer.from('89504e470d0a1a0a','hex').toString('base64')}]});
   }});
   assert.equal((await gateway.generate(input)).modelUsed, env.IMAGE_MODEL);
