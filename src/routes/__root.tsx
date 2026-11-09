@@ -6,6 +6,7 @@ import { RecipeDock } from '@/components/layout/RecipeDock'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import {PlatformJobs} from '@/components/common/PlatformJobs'
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootLayout,
@@ -21,6 +22,7 @@ function RootLayout() {
           <main className="@container/main flex min-w-0 flex-1 flex-col px-4 pt-4 pb-10 sm:px-6 md:px-8">
             <div className="mx-auto flex min-w-0 w-full max-w-7xl flex-1 flex-col gap-4 md:gap-6">
               <Outlet />
+              <PlatformJobs />
             </div>
             <RecipeDock />
           </main>

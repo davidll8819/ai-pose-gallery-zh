@@ -1,3 +1,4 @@
+import {translate as tr,useLocale as useTranslatedUI} from '@/lib/locale'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useLocation } from '@tanstack/react-router'
 import { CopyIcon, DicesIcon, LoaderCircleIcon, PersonStandingIcon, ShirtIcon, SparklesIcon, Trash2Icon, UserRoundIcon, XIcon } from 'lucide-react'
@@ -10,6 +11,8 @@ import { buildRecipePrompt } from '@/services/aiGenerator'
 import { useStudio } from '@/store/studioStore'
 
 export function RecipeDock() {
+  useTranslatedUI()
+
   const { pathname } = useLocation()
   const { recipe, apiConfig, isGenerating, setPortrait, setCostume, setPose, toggleRecipePoseDepth, clearRecipe, randomizeRecipe } = useStudio()
   const qc = useQueryClient()
@@ -38,7 +41,7 @@ export function RecipeDock() {
   const handleCopyPrompt = async () => {
     const text = buildRecipePrompt(recipe, apiConfig.stylePreset, workflowImages)
     await navigator.clipboard.writeText(text)
-    toast.success('已复制提示词')
+    toast.success(tr("已复制提示词"))
   }
 
   return (
@@ -59,7 +62,7 @@ export function RecipeDock() {
                 </div>
                 <button
                   type="button"
-                  aria-label="清除人像参考图"
+                  aria-label={tr("清除人像参考图")}
                   onClick={() => setPortrait(null)}
                   className="absolute top-1 right-1 shrink-0 rounded-full p-0.5 text-muted-foreground hover:text-foreground @md/main:static"
                 >
@@ -71,7 +74,7 @@ export function RecipeDock() {
                 <div className="flex h-8 w-7 shrink-0 items-center justify-center rounded-md bg-background/80 sm:h-10 sm:w-8">
                   <UserRoundIcon className="size-3.5" />
                 </div>
-                <span className="truncate text-[11px] sm:text-xs">人像</span>
+                <span className="truncate text-[11px] sm:text-xs">{tr("人像")}</span>
               </Link>
             )}
           </div>
@@ -90,7 +93,7 @@ export function RecipeDock() {
                 </div>
                 <button
                   type="button"
-                  aria-label="清除服装参考图"
+                  aria-label={tr("清除服装参考图")}
                   onClick={() => setCostume(null)}
                   className="absolute top-1 right-1 shrink-0 rounded-full p-0.5 text-muted-foreground hover:text-foreground @md/main:static"
                 >
@@ -102,7 +105,7 @@ export function RecipeDock() {
                 <div className="flex h-8 w-7 shrink-0 items-center justify-center rounded-md bg-background/80 sm:h-10 sm:w-8">
                   <ShirtIcon className="size-3.5" />
                 </div>
-                <span className="truncate text-[11px] sm:text-xs">服装</span>
+                <span className="truncate text-[11px] sm:text-xs">{tr("服装")}</span>
               </Link>
             )}
           </div>
@@ -124,15 +127,15 @@ export function RecipeDock() {
                       onClick={toggleRecipePoseDepth}
                       className="mt-0.5 inline-flex items-center gap-1 rounded bg-background/80 px-1 py-0.5 text-[10px] leading-none text-muted-foreground hover:text-foreground"
                     >
-                      <span className={!recipe.pose.useDepth ? 'font-semibold text-foreground' : ''}>白模</span>
+                      <span className={!recipe.pose.useDepth ? 'font-semibold text-foreground' : ''}>{tr("白模")}</span>
                       <span>/</span>
-                      <span className={recipe.pose.useDepth ? 'font-semibold text-primary' : ''}>深度</span>
+                      <span className={recipe.pose.useDepth ? 'font-semibold text-primary' : ''}>{tr("深度")}</span>
                     </button>
                   )}
                 </div>
                 <button
                   type="button"
-                  aria-label="清除姿势参考图"
+                  aria-label={tr("清除姿势参考图")}
                   onClick={() => setPose(null)}
                   className="absolute top-1 right-1 shrink-0 rounded-full p-0.5 text-muted-foreground hover:text-foreground @md/main:static"
                 >
@@ -144,7 +147,7 @@ export function RecipeDock() {
                 <div className="flex h-8 w-7 shrink-0 items-center justify-center rounded-md bg-background/80 sm:h-10 sm:w-8">
                   <PersonStandingIcon className="size-3.5" />
                 </div>
-                <span className="truncate text-[11px] sm:text-xs">姿势</span>
+                <span className="truncate text-[11px] sm:text-xs">{tr("姿势")}</span>
               </Link>
             )}
           </div>
@@ -152,16 +155,14 @@ export function RecipeDock() {
 
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs" onClick={handleRandom}>
-            <DicesIcon className="size-3.5" />
-            随机
-          </Button>
+            <DicesIcon className="size-3.5" />{tr("随机")}</Button>
           {count > 0 && (
             <>
-              <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs" aria-label="复制提示词" onClick={handleCopyPrompt}>
+              <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs" aria-label={tr("复制提示词")} onClick={handleCopyPrompt}>
                 <CopyIcon className="size-3.5" />
-                <span className="hidden md:inline">复制词</span>
+                <span className="hidden md:inline">{tr("复制词")}</span>
               </Button>
-              <Button variant="ghost" size="icon" className="size-8" aria-label="清空参考图" onClick={clearRecipe}>
+              <Button variant="ghost" size="icon" className="size-8" aria-label={tr("清空参考图")} onClick={clearRecipe}>
                 <Trash2Icon className="size-3.5" />
               </Button>
             </>
@@ -170,13 +171,10 @@ export function RecipeDock() {
             <Link to="/studio">
               {isGenerating ? (
                 <>
-                  <LoaderCircleIcon className="size-3.5 animate-spin" />
-                  生成中…
-                </>
+                  <LoaderCircleIcon className="size-3.5 animate-spin" />{tr("生成中…")}</>
               ) : (
                 <>
-                  <SparklesIcon className="size-3.5" />
-                  合成 ({count})
+                  <SparklesIcon className="size-3.5" />{tr("合成 (")}{count})
                 </>
               )}
             </Link>

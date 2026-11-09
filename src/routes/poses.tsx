@@ -1,3 +1,4 @@
+import {translate as tr,useLocale as useTranslatedUI} from '@/lib/locale'
 import { ZoomViewport } from '@/components/common/ZoomViewport'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
@@ -36,6 +37,8 @@ export const Route = createFileRoute('/poses')({
 })
 
 function PosesPage() {
+  useTranslatedUI()
+
   const { data } = useSuspenseQuery(posesQuery)
   const { recipe, togglePose, safeMode, requestUnlockNsfw, poseDepthMode, setPoseDepthMode } = useStudio()
 
@@ -139,7 +142,7 @@ function PosesPage() {
   return (
     <>
       <PageHeader
-        title="动作姿势库"
+        title={tr("动作姿势库")}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {/* 素体白模 / 深度图 切换 */}
@@ -153,9 +156,7 @@ function PosesPage() {
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
-              >
-                素体白模
-              </button>
+              >{tr("素体白模")}</button>
               <button
                 type="button"
                 onClick={() => setPoseDepthMode(true)}
@@ -165,9 +166,7 @@ function PosesPage() {
                     ? 'bg-primary text-primary-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
-              >
-                深度图 (Depth)
-              </button>
+              >{tr("深度图 (Depth)")}</button>
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -178,9 +177,7 @@ function PosesPage() {
                   setViewMode('group')
                   setShown(60)
                 }}
-              >
-                分组
-              </Button>
+              >{tr("分组")}</Button>
               <Button
                 variant={viewMode === 'single' ? 'default' : 'outline'}
                 size="sm"
@@ -188,9 +185,7 @@ function PosesPage() {
                   setViewMode('single')
                   setShown(96)
                 }}
-              >
-                单张
-              </Button>
+              >{tr("单张")}</Button>
             </div>
           </div>
         }
@@ -209,8 +204,7 @@ function PosesPage() {
             'shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
             activeLine === '' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
           )}
-        >
-          全部 ({baseItems.length})
+        >{tr("全部 (")}{baseItems.length})
         </button>
         {visibleLines.map((l) => {
           const cnt = data.items.filter((x) => x.体系 === l).length
@@ -244,8 +238,7 @@ function PosesPage() {
               })
             }
             className="shrink-0 rounded-full border border-dashed border-rose-500/40 bg-rose-500/5 px-3.5 py-1.5 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400"
-          >
-            🔒 解锁 18+ 性感/双人系 ({hiddenNsfwCount})
+          >{tr("🔒 解锁 18+ 性感/双人系 (")}{hiddenNsfwCount})
           </button>
         )}
       </div>
@@ -260,7 +253,7 @@ function PosesPage() {
               setQuery(e.target.value)
               setShown(60)
             }}
-            placeholder="搜索姿势名称、编号 (如 P001)、分类或 ID…"
+            placeholder={tr("搜索姿势名称、编号 (如 P001)、分类或 ID…")}
             className="bg-background pl-9"
           />
         </div>
@@ -273,10 +266,10 @@ function PosesPage() {
           }}
         >
           <SelectTrigger className="w-full bg-background">
-            <SelectValue placeholder="动作分类" />
+            <SelectValue placeholder={tr("动作分类")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">全部动作分类</SelectItem>
+            <SelectItem value="all">{tr("全部动作分类")}</SelectItem>
             {categories.map((c) => (
               <SelectItem key={c} value={c}>
                 {c}
@@ -305,14 +298,12 @@ function PosesPage() {
         </div>
 
         <Button variant="ghost" size="sm" onClick={resetFilters} className="h-9">
-          <RotateCcwIcon className="size-3.5" />
-          重置
-        </Button>
+          <RotateCcwIcon className="size-3.5" />{tr("重置")}</Button>
       </div>
 
       {/* 列表区 */}
       {totalCount === 0 ? (
-        <EmptyState title="没有找到匹配的姿势" description="试试更换搜索词或重置筛选条件" />
+        <EmptyState title={tr("没有找到匹配的姿势")} description={tr("试试更换搜索词或重置筛选条件")} />
       ) : viewMode === 'group' ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {filteredGroups.slice(0, shown).map((group, gIdx) => {
@@ -353,7 +344,7 @@ function PosesPage() {
                     )}
                   >
                     {picked ? <CheckIcon className="size-3" /> : <PlusIcon className="size-3" />}
-                    {picked ? '已选' : '加入配方'}
+                    {picked ? tr("已选") : tr("加入配方")}
                   </button>
                 </div>
 
@@ -437,7 +428,7 @@ function PosesPage() {
                     )}
                   >
                     {picked ? <CheckIcon className="size-3" /> : <PlusIcon className="size-3" />}
-                    {picked ? '已选' : '加入配方'}
+                    {picked ? tr("已选") : tr("加入配方")}
                   </button>
                 </div>
                 <div className="px-1.5 pt-2 pb-1">
@@ -452,8 +443,7 @@ function PosesPage() {
 
       {shown < totalCount && (
         <div className="flex justify-center pt-2">
-          <Button variant="outline" onClick={() => setShown((s) => s + 60)}>
-            加载更多（剩余 {totalCount - shown} {viewMode === 'group' ? '组' : '张'}）
+          <Button variant="outline" onClick={() => setShown((s) => s + 60)}>{tr("加载更多（剩余")}{totalCount - shown} {viewMode === 'group' ? tr("组") : tr("张")}）
           </Button>
         </div>
       )}
@@ -475,7 +465,7 @@ function PosesPage() {
                       <Button
                         variant="secondary"
                         size="icon"
-                        aria-label="上一张图片" className="absolute top-1/2 left-3 min-h-11 min-w-11 -translate-y-1/2 rounded-full shadow"
+                        aria-label={tr("上一张图片")} className="absolute top-1/2 left-3 min-h-11 min-w-11 -translate-y-1/2 rounded-full shadow"
                         onClick={() => {
                           const idx = grp.order.findIndex((x) => x.id === it.id)
                           const next = grp.order[(idx - 1 + grp.order.length) % grp.order.length]
@@ -487,7 +477,7 @@ function PosesPage() {
                       <Button
                         variant="secondary"
                         size="icon"
-                        aria-label="下一张图片" className="absolute top-1/2 right-3 min-h-11 min-w-11 -translate-y-1/2 rounded-full shadow"
+                        aria-label={tr("下一张图片")} className="absolute top-1/2 right-3 min-h-11 min-w-11 -translate-y-1/2 rounded-full shadow"
                         onClick={() => {
                           const idx = grp.order.findIndex((x) => x.id === it.id)
                           const next = grp.order[(idx + 1) % grp.order.length]
@@ -514,9 +504,7 @@ function PosesPage() {
                               'rounded px-2 py-0.5 text-[11px] font-medium transition',
                               !poseDepthMode ? 'bg-background text-foreground shadow-2xs' : 'text-muted-foreground'
                             )}
-                          >
-                            白模
-                          </button>
+                          >{tr("白模")}</button>
                           <button
                             type="button"
                             onClick={() => setPoseDepthMode(true)}
@@ -524,9 +512,7 @@ function PosesPage() {
                               'rounded px-2 py-0.5 text-[11px] font-medium transition',
                               poseDepthMode ? 'bg-primary text-primary-foreground shadow-2xs' : 'text-muted-foreground'
                             )}
-                          >
-                            深度图
-                          </button>
+                          >{tr("深度图")}</button>
                         </div>
                       </div>
                       <DialogTitle className="mt-2 text-lg leading-snug">{it.姿势名称}</DialogTitle>
@@ -538,7 +524,7 @@ function PosesPage() {
                         type="button"
                         onClick={() => {
                           void navigator.clipboard.writeText(it.id)
-                          toast.success('已复制姿势 ID')
+                          toast.success(tr("已复制姿势 ID"))
                         }}
                         className="ml-2 shrink-0 text-primary hover:underline"
                       >
@@ -548,7 +534,7 @@ function PosesPage() {
 
                     {grp && (
                       <div>
-                        <div className="mb-1.5 text-xs font-medium text-muted-foreground">切换视角（← / →）</div>
+                        <div className="mb-1.5 text-xs font-medium text-muted-foreground">{tr("切换视角（← / →）")}</div>
                         <div className="grid grid-cols-5 gap-1.5">
                           {ANGLES.map((ang) => {
                             const angItem = grp.angles[ang]
@@ -573,13 +559,13 @@ function PosesPage() {
                     )}
 
                     <dl className="grid grid-cols-[68px_1fr] gap-y-1.5 text-xs">
-                      <dt className="text-muted-foreground">所属体系</dt>
+                      <dt className="text-muted-foreground">{tr("所属体系")}</dt>
                       <dd className="font-medium">{it.体系}</dd>
-                      <dt className="text-muted-foreground">动作分类</dt>
+                      <dt className="text-muted-foreground">{tr("动作分类")}</dt>
                       <dd className="font-medium">{it.分类}</dd>
-                      <dt className="text-muted-foreground">当前模式</dt>
-                      <dd className="font-medium">{poseDepthMode ? '深度图 (Depth Map)' : '3D 素体白模'}</dd>
-                      <dt className="text-muted-foreground">原图尺寸</dt>
+                      <dt className="text-muted-foreground">{tr("当前模式")}</dt>
+                      <dd className="font-medium">{poseDepthMode ? tr("深度图 (Depth Map)") : tr("3D 素体白模")}</dd>
+                      <dt className="text-muted-foreground">{tr("原图尺寸")}</dt>
                       <dd className="font-medium">900 × 1200 {poseDepthMode ? 'WebP' : 'PNG'}</dd>
                     </dl>
                   </div>
@@ -587,20 +573,17 @@ function PosesPage() {
                   <div className="flex flex-col gap-2">
                     <Button onClick={() => togglePose(it)} variant={picked ? 'secondary' : 'default'}>
                       {picked ? <CheckIcon className="size-4" /> : <PlusIcon className="size-4" />}
-                      {picked ? '已在角色配方中（点击移除）' : `加入角色配方（${poseDepthMode ? '深度图' : '白模'}）`}
+                      {picked ? tr("已在角色配方中（点击移除）") : `加入角色配方（${poseDepthMode ? tr("深度图") : tr("白模")}）`}
                     </Button>
                     <div className="grid grid-cols-2 gap-2">
                       <Button variant="outline" size="sm" asChild>
                         <a href={`/${activeImgPath}`} download={`${it.id}${poseDepthMode ? '_depth.webp' : '.png'}`}>
-                          <DownloadIcon className="size-3.5" />
-                          下载{poseDepthMode ? '深度图' : ' PNG'}
+                          <DownloadIcon className="size-3.5" />{tr("下载")}{poseDepthMode ? tr("深度图") : ' PNG'}
                         </a>
                       </Button>
                       <Button variant="outline" size="sm" asChild>
                         <a href={`/${activeImgPath}`} target="_blank" rel="noopener noreferrer">
-                          <ExternalLinkIcon className="size-3.5" />
-                          新窗口原图
-                        </a>
+                          <ExternalLinkIcon className="size-3.5" />{tr("新窗口原图")}</a>
                       </Button>
                     </div>
                   </div>

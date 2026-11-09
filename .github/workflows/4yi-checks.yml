@@ -1,0 +1,36 @@
+name: 4yi application checks
+on:
+  push:
+    branches: [codex/4yi-integration]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --global pnpm@11.25.0
+      - run: pnpm install --frozen-lockfile
+      - run: node --test server/*.test.mjs
+      - run: pnpm build
+      - run: docker build -t pose-4yi:test .
+      - name: Check non-root container and health
+        run: |
+          docker run -d --name pose-smoke --network none -e FOURYI_ROUTER_IDENTITY_KEY=1111111111111111111111111111111111111111111111111111111111111111 -e XCLAW_APP_HOSTNAME=smoke.invalid pose-4yi:test
+          for attempt in $(seq 1 30); do
+            if docker exec pose-smoke node -e "fetch('http://127.0.0.1:3000/healthz').then(r=>{if(!r.ok)process.exit(1)})"; then break; fi
+            sleep 1
+          done
+          docker exec pose-smoke node -e "if(process.getuid()===0)process.exit(1);require('fs').writeFileSync('/data/smoke','ok')"
+          docker exec pose-smoke node -e "fetch('http://127.0.0.1:3000/api/jobs').then(r=>{if(r.status!==401)process.exit(1)})"
+      - name: Container logs
+        if: failure()
+        run: docker logs pose-smoke || true
+      - name: Cleanup
+        if: always()
+        run: docker rm -f pose-smoke || true

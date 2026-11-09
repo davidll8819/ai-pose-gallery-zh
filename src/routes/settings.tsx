@@ -1,3 +1,4 @@
+import {translate as tr,useLocale as useTranslatedUI} from '@/lib/locale'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   CheckIcon,
@@ -30,6 +31,8 @@ export const Route = createFileRoute('/settings')({
 const PROVIDER_ORDER: ImageProviderId[] = ['gemini', 'gpt', 'qwen', 'doubao', 'comfyui']
 
 function SettingsPage() {
+  useTranslatedUI()
+
   const { apiConfig, updateApiConfig, updateProviderConfig, comfyConnection } = useStudio()
   const [showKey, setShowKey] = useState(false)
   const [testingComfy, setTestingComfy] = useState(false)
@@ -43,7 +46,7 @@ function SettingsPage() {
     try {
       const found = await detectComfyUi(pCfg.baseUrl, pCfg.apiKey)
       if (!found) {
-        toast.error('未找到可用的 ComfyUI（已尝试当前地址、127.0.0.1:8000、127.0.0.1:8188），请确认已启动并检查跨域设置', {
+        toast.error(tr("未找到可用的 ComfyUI（已尝试当前地址、127.0.0.1:8000、127.0.0.1:8188），请确认已启动并检查跨域设置"), {
           duration: 10000,
         })
         return
@@ -58,13 +61,11 @@ function SettingsPage() {
   return (
     <>
       <PageHeader
-        title="API 接口配置"
+        title={tr("API 接口配置")}
         actions={
           <Button size="sm" asChild>
             <Link to="/studio">
-              <SparklesIcon className="size-4" />
-              返回合成台
-            </Link>
+              <SparklesIcon className="size-4" />{tr("返回合成台")}</Link>
           </Button>
         }
       />
@@ -89,13 +90,13 @@ function SettingsPage() {
                   : 'border-border/60 bg-card hover:bg-muted/40'
               }`}
             >
-              <span className="min-w-0"><span className="block truncate text-sm">{itemMeta.name}</span><span className="block text-xs font-normal text-muted-foreground">{id === 'comfyui' ? COMFY_CONNECTION_LABELS[comfyConnection.status] : hasKey ? '已配置' : '未配置 Key'}</span></span>
+              <span className="min-w-0"><span className="block truncate text-sm">{itemMeta.name}</span><span className="block text-xs font-normal text-muted-foreground">{id === 'comfyui' ? COMFY_CONNECTION_LABELS[comfyConnection.status] : hasKey ? tr("已配置") : tr("未配置 Key")}</span></span>
               <span
                 aria-hidden="true"
                 className={`size-2 shrink-0 rounded-full ${
                   id === 'comfyui' && comfyConnection.status === 'connected' ? 'bg-emerald-500' : hasKey ? 'bg-amber-500' : 'bg-muted-foreground/30'
                 }`}
-                title={id === 'comfyui' ? COMFY_CONNECTION_LABELS[comfyConnection.status] : hasKey ? '已配置，尚未检测' : '未配置 Key'}
+                title={id === 'comfyui' ? COMFY_CONNECTION_LABELS[comfyConnection.status] : hasKey ? tr("已配置，尚未检测") : tr("未配置 Key")}
               />
             </button>
           )
@@ -112,16 +113,12 @@ function SettingsPage() {
             {pid === 'comfyui' && (
               <>
                 <Button variant="outline" size="sm" onClick={handleDetectComfy} disabled={testingComfy}>
-                  <ScanSearchIcon className="size-3.5" />
-                  自动识别
-                </Button>
+                  <ScanSearchIcon className="size-3.5" />{tr("自动识别")}</Button>
               </>
             )}
             <Button variant="ghost" size="sm" asChild>
               <a href={meta.docUrl} target="_blank" rel="noreferrer">
-                <ExternalLinkIcon className="size-3.5" />
-                文档
-              </a>
+                <ExternalLinkIcon className="size-3.5" />{tr("文档")}</a>
             </Button>
             <Button
               variant="ghost"
@@ -131,17 +128,15 @@ function SettingsPage() {
                   baseUrl: meta.defaultBaseUrl,
                   model: meta.models[0].value,
                 })
-                toast.success('已恢复默认')
+                toast.success(tr("已恢复默认"))
               }}
             >
-              <RotateCcwIcon className="size-3.5" />
-              重置
-            </Button>
+              <RotateCcwIcon className="size-3.5" />{tr("重置")}</Button>
           </div>
         }
       >
         <Field
-          label={pid === 'comfyui' ? 'ComfyUI 地址 (Base URL)' : 'Base URL'}
+          label={pid === 'comfyui' ? tr("ComfyUI 地址 (Base URL)") : 'Base URL'}
           hint={
             pid === 'comfyui'
               ? `本地运行本站时填 /comfy（同源代理，无需改跨域设置）；直连时 ComfyUI 需加启动参数 --enable-cors-header "${typeof window !== 'undefined' ? window.location.origin : '*'}"。Desktop 版默认端口 8000，便携版 8188`
@@ -156,7 +151,7 @@ function SettingsPage() {
           />
         </Field>
 
-        <Field label={pid === 'comfyui' ? 'API Key（可选，本地留空）' : 'API Key'}>
+        <Field label={pid === 'comfyui' ? tr("API Key（可选，本地留空）") : 'API Key'}>
           <div className="relative">
             <Input
               type={showKey ? 'text' : 'password'}
@@ -164,8 +159,8 @@ function SettingsPage() {
               onChange={(e) => updateProviderConfig(pid, { apiKey: e.target.value })}
               placeholder={
                 pid === 'comfyui'
-                  ? '本地 ComfyUI 无需填写，远程鉴权可填 Token'
-                  : '输入 API Key（仅保存在本地浏览器）'
+                  ? tr("本地 ComfyUI 无需填写，远程鉴权可填 Token")
+                  : tr("输入 API Key（仅保存在本地浏览器）")
               }
               className="pr-10"
             />
@@ -180,7 +175,7 @@ function SettingsPage() {
         </Field>
 
         {pid !== 'comfyui' && (
-          <Field label="默认模型 ID">
+          <Field label={tr("默认模型 ID")}>
             <Select
               value={pCfg.model}
               onValueChange={(v) => updateProviderConfig(pid, { model: v })}
@@ -200,11 +195,11 @@ function SettingsPage() {
         )}
 
         {pid !== 'comfyui' && pCfg.model === 'custom' && (
-          <Field label="自定义模型 ID">
+          <Field label={tr("自定义模型 ID")}>
             <Input
               value={pCfg.customModel}
               onChange={(e) => updateProviderConfig(pid, { customModel: e.target.value })}
-              placeholder={pid === 'doubao' ? 'ep-2026xxxx 或模型 ID' : '输入模型 ID'}
+              placeholder={pid === 'doubao' ? tr("ep-2026xxxx 或模型 ID") : tr("输入模型 ID")}
               className="font-mono text-xs"
             />
           </Field>
@@ -212,13 +207,13 @@ function SettingsPage() {
       </Section>
 
       {pid === 'comfyui' && (
-        <p className="text-sm text-muted-foreground">模型由工作流决定。请返回合成台导入工作流，并设置人像、服装和姿势节点。</p>
+        <p className="text-sm text-muted-foreground">{tr("模型由工作流决定。请返回合成台导入工作流，并设置人像、服装和姿势节点。")}</p>
       )}
 
       {/* 全局传输设置 */}
       {pid !== 'comfyui' && (
-        <Section title="全局请求选项">
-          <Field label="参考图传参方式">
+        <Section title={tr("全局请求选项")}>
+          <Field label={tr("参考图传参方式")}>
             <Select
               value={apiConfig.imagePassMode}
               onValueChange={(v) => updateApiConfig({ imagePassMode: v as ImagePassMode })}
@@ -227,19 +222,19 @@ function SettingsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="url">传递图片 URL（免上传文件，推荐）</SelectItem>
-                <SelectItem value="base64">转 Base64 编码传输</SelectItem>
+                <SelectItem value="url">{tr("传递图片 URL（免上传文件，推荐）")}</SelectItem>
+                <SelectItem value="base64">{tr("转 Base64 编码传输")}</SelectItem>
               </SelectContent>
             </Select>
           </Field>
 
           <Field
-            label="服务端 CORS 代理 (/api/proxy)"
-            hint="默认关闭（浏览器直连）；切换到阿里云百炼 (Qwen) 或火山方舟 (Doubao) 时会自动开启。仅支持白名单域名（可通过服务端环境变量 PROXY_ALLOWED_ORIGINS 扩展）"
+            label={tr("服务端 CORS 代理 (/api/proxy)")}
+            hint={tr("默认关闭（浏览器直连）；切换到阿里云百炼 (Qwen) 或火山方舟 (Doubao) 时会自动开启。仅支持白名单域名（可通过服务端环境变量 PROXY_ALLOWED_ORIGINS 扩展）")}
           >
             <div className="flex h-9 items-center justify-between rounded-xl border bg-background px-3">
               <span className="text-xs text-muted-foreground">
-                {apiConfig.useProxy ? '已启用（解决跨域限制）' : '已关闭（浏览器直连）'}
+                {apiConfig.useProxy ? tr("已启用（解决跨域限制）") : tr("已关闭（浏览器直连）")}
               </span>
               <Switch
                 checked={apiConfig.useProxy}
@@ -251,10 +246,8 @@ function SettingsPage() {
       )}
 
       <div className="flex justify-end">
-        <Button size="sm" onClick={() => toast.success('配置已保存')}>
-          <CheckIcon className="size-4" />
-          保存配置
-        </Button>
+        <Button size="sm" onClick={() => toast.success(tr("配置已保存"))}>
+          <CheckIcon className="size-4" />{tr("保存配置")}</Button>
       </div>
     </>
   )

@@ -4,6 +4,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { StudioProvider } from '@/store/studioStore'
+import {LocaleProvider} from '@/lib/locale'
+import {setStorageScope} from '@/lib/scoped-storage'
 import { routeTree } from './routeTree.gen'
 import './index.css'
 import './notifications.css'
@@ -35,14 +37,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
-createRoot(document.getElementById('root')!).render(
+const root=createRoot(document.getElementById('root')!)
+async function boot(){
+ try {
+ const response=await fetch('/api/locale',{signal:AbortSignal.timeout(20000)})
+ if(!response.ok)throw new Error('session_unavailable')
+ if(response.headers.get('content-type')?.includes('application/json')){const data=await response.json();if(typeof data.scope!=='string')throw new Error('identity_unavailable');setStorageScope(data.scope)}
+ root.render(
   <StrictMode>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <StudioProvider>
+        <LocaleProvider><StudioProvider>
           <RouterProvider router={router} />
-        </StudioProvider>
+        </StudioProvider></LocaleProvider>
       </QueryClientProvider>
     </ThemeProvider>
   </StrictMode>
 )
+
+ }catch{root.render(<main><p>连接暂不可用 / Connection unavailable</p><button onClick={()=>void boot()}>重试 / Retry</button></main>)}
+}
+void boot()

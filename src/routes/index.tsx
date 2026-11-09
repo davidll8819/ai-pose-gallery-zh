@@ -1,3 +1,4 @@
+import {translate as tr,useLocale as useTranslatedUI} from '@/lib/locale'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import {
@@ -32,6 +33,8 @@ export const Route = createFileRoute('/')({
 })
 
 function DashboardPage() {
+  useTranslatedUI()
+
   const { data: posesData } = useSuspenseQuery(posesQuery)
   const { data: costumes } = useSuspenseQuery(costumesQuery)
   const { data: portraits } = useSuspenseQuery(portraitsQuery)
@@ -42,33 +45,33 @@ function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="AI 角色参考库" />
+      <PageHeader title={tr("AI 角色参考库")} />
 
       {/* 核心数据指标卡片 */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
-          title="总参考图"
+          title={tr("总参考图")}
           value={totalImages.toLocaleString('zh-CN')}
           icon={<LayersIcon />}
-          desc="11,568 本地高清图"
+          desc={tr("11,568 本地高清图")}
         />
         <StatCard
-          title="动作姿势 (Pose)"
+          title={tr("动作姿势 (Pose)")}
           value={`${posesData.groups.length} 组`}
           icon={<PersonStandingIcon />}
           desc={`${posesData.items.length} 张 · 白模/深度`}
         />
         <StatCard
-          title="服装穿搭 (Costume)"
+          title={tr("服装穿搭 (Costume)")}
           value={`${costumes.length.toLocaleString('zh-CN')} 套`}
           icon={<ShirtIcon />}
-          desc="现实 1,407 · 二次元 440"
+          desc={tr("现实 1,407 · 二次元 440")}
         />
         <StatCard
-          title="人像颜值 (Portrait)"
+          title={tr("人像颜值 (Portrait)")}
           value={`${portraits.length.toLocaleString('zh-CN')} 张`}
           icon={<UserRoundIcon />}
-          desc="CC0 协议 · 51 款发型"
+          desc={tr("CC0 协议 · 51 款发型")}
         />
       </div>
 
@@ -79,7 +82,7 @@ function DashboardPage() {
           className="group flex flex-col justify-between rounded-[20px] bg-muted p-4 transition hover:bg-muted/70"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold">🕺 动作姿势库</h2>
+            <h2 className="text-base font-semibold">{tr("🕺 动作姿势库")}</h2>
             <Badge variant="secondary">1,439</Badge>
           </div>
           <div className="mt-3 grid grid-cols-4 gap-1.5">
@@ -100,7 +103,7 @@ function DashboardPage() {
           className="group flex flex-col justify-between rounded-[20px] bg-muted p-4 transition hover:bg-muted/70"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold">👗 服装穿搭库</h2>
+            <h2 className="text-base font-semibold">{tr("👗 服装穿搭库")}</h2>
             <Badge variant="secondary">{costumes.length.toLocaleString('zh-CN')}</Badge>
           </div>
           <div className="mt-3 grid grid-cols-4 gap-1.5">
@@ -121,7 +124,7 @@ function DashboardPage() {
           className="group flex flex-col justify-between rounded-[20px] bg-muted p-4 transition hover:bg-muted/70"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold">👤 人像颜值库</h2>
+            <h2 className="text-base font-semibold">{tr("👤 人像颜值库")}</h2>
             <Badge variant="secondary">1,499</Badge>
           </div>
           <div className="mt-3 grid grid-cols-4 gap-1.5">
@@ -142,13 +145,9 @@ function DashboardPage() {
       <section className="rounded-[20px] bg-muted p-4">
         <div className="flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-1.5 text-sm font-semibold sm:text-base">
-            <FlameIcon className="size-4 text-orange-500" />
-            热门人像 Top 10
-          </h2>
+            <FlameIcon className="size-4 text-orange-500" />{tr("热门人像 Top 10")}</h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/portraits">
-              全部
-              <ArrowRightIcon className="size-3.5" />
+            <Link to="/portraits">{tr("全部")}<ArrowRightIcon className="size-3.5" />
             </Link>
           </Button>
         </div>
@@ -191,8 +190,7 @@ function DashboardPage() {
 
       {/* 底部免责声明提示条 */}
       <footer className="rounded-[18px] border border-border/60 bg-muted/50 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-        <strong className="text-foreground">⚠️ 免责声明：</strong>
-        本站原有姿势与现实服饰参考图源自 X 创作者{' '}
+        <strong className="text-foreground">{tr("⚠️ 免责声明：")}</strong>{tr("本站原有姿势与现实服饰参考图源自 X 创作者")}{' '}
         <a
           href="https://x.com/giaaibusi"
           target="_blank"
@@ -200,12 +198,8 @@ function DashboardPage() {
           className="underline hover:text-foreground"
         >
           ギア (@giaaibusi)
-        </a>{' '}
-        公开分享。新增二次元服装来自 たき AI · CharaDB，仅收录元数据，图片从来源站点读取，各素材适用各自条件。默认已开启「安全模式 (SFW)」隐藏 18+ 敏感分类，未满 18 周岁请勿关闭。本工具与素材
-        <strong className="text-foreground">仅供个人学习与合法艺术创作使用，严禁用于任何违法违规或侵害他人肖像权用途</strong>。{' '}
-        <Link to="/guide" className="font-medium text-primary underline">
-          查看完整免责声明 →
-        </Link>
+        </a>{' '}{tr("公开分享。新增二次元服装来自 たき AI · CharaDB，仅收录元数据，图片从来源站点读取，各素材适用各自条件。默认已开启「安全模式 (SFW)」隐藏 18+ 敏感分类，未满 18 周岁请勿关闭。本工具与素材")}<strong className="text-foreground">{tr("仅供个人学习与合法艺术创作使用，严禁用于任何违法违规或侵害他人肖像权用途")}</strong>。{' '}
+        <Link to="/guide" className="font-medium text-primary underline">{tr("查看完整免责声明 →")}</Link>
       </footer>
     </>
   )

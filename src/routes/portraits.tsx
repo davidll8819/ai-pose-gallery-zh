@@ -1,3 +1,4 @@
+import {translate as tr,useLocale as useTranslatedUI} from '@/lib/locale'
 import { ZoomViewport } from '@/components/common/ZoomViewport'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
@@ -37,6 +38,8 @@ export const Route = createFileRoute('/portraits')({
 const HAIRS = ['短发', '中发', '中长发', '长发'] as const
 
 function PortraitsPage() {
+  useTranslatedUI()
+
   const { data: portraits } = useSuspenseQuery(portraitsQuery)
   const { recipe, togglePortrait } = useStudio()
 
@@ -84,7 +87,7 @@ function PortraitsPage() {
   return (
     <>
       <PageHeader
-        title="人像颜值库"
+        title={tr("人像颜值库")}
         actions={
           <Button
             variant={onlyHot ? 'default' : 'outline'}
@@ -94,9 +97,7 @@ function PortraitsPage() {
               setShown(60)
             }}
           >
-            <FlameIcon className="size-3.5 text-orange-500" />
-            Top10 热门
-          </Button>
+            <FlameIcon className="size-3.5 text-orange-500" />{tr("Top10 热门")}</Button>
         }
       />
 
@@ -116,8 +117,7 @@ function PortraitsPage() {
               ? 'bg-primary text-primary-foreground'
               : 'bg-muted text-muted-foreground hover:text-foreground'
           )}
-        >
-          全部人像 ({portraits.length})
+        >{tr("全部人像 (")}{portraits.length})
         </button>
         {(['正脸参考', '造型氛围'] as const).map((sec) => {
           const cnt = portraits.filter((x) => x.分区 === sec).length
@@ -173,7 +173,7 @@ function PortraitsPage() {
               setQuery(e.target.value)
               setShown(60)
             }}
-            placeholder="搜索发型款式、发色或 ID（如：波波头、狼尾、空气刘海、挑染、韩式）…"
+            placeholder={tr("搜索发型款式、发色或 ID（如：波波头、狼尾、空气刘海、挑染、韩式）…")}
             className="bg-background pl-9"
           />
         </div>
@@ -186,10 +186,10 @@ function PortraitsPage() {
           }}
         >
           <SelectTrigger className="w-full bg-background">
-            <SelectValue placeholder="全部 51 款日系发型" />
+            <SelectValue placeholder={tr("全部 51 款日系发型")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">全部 51 款日系发型</SelectItem>
+            <SelectItem value="all">{tr("全部 51 款日系发型")}</SelectItem>
             {styleOptions.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}
@@ -211,13 +211,11 @@ function PortraitsPage() {
             setShown(60)
           }}
         >
-          <RotateCcwIcon className="size-3.5" />
-          重置
-        </Button>
+          <RotateCcwIcon className="size-3.5" />{tr("重置")}</Button>
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState title="没有找到匹配的人像参考" description="试试更换发型关键词或重置筛选" />
+        <EmptyState title={tr("没有找到匹配的人像参考")} description={tr("试试更换发型关键词或重置筛选")} />
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {filtered.slice(0, shown).map((item, idx) => {
@@ -262,7 +260,7 @@ function PortraitsPage() {
                     )}
                   >
                     {picked ? <CheckIcon className="size-3" /> : <PlusIcon className="size-3" />}
-                    {picked ? '已选' : '加入配方'}
+                    {picked ? tr("已选") : tr("加入配方")}
                   </button>
                 </div>
 
@@ -281,9 +279,7 @@ function PortraitsPage() {
 
       {shown < filtered.length && (
         <div className="flex justify-center pt-2">
-          <Button variant="outline" onClick={() => setShown((s) => s + 60)}>
-            加载更多（剩余 {filtered.length - shown} 张）
-          </Button>
+          <Button variant="outline" onClick={() => setShown((s) => s + 60)}>{tr("加载更多（剩余")}{filtered.length - shown}{tr("张）")}</Button>
         </div>
       )}
 
@@ -299,7 +295,7 @@ function PortraitsPage() {
                   <Button
                     variant="secondary"
                     size="icon"
-                    aria-label="上一张图片" className="absolute top-1/2 left-3 min-h-11 min-w-11 -translate-y-1/2 rounded-full shadow"
+                    aria-label={tr("上一张图片")} className="absolute top-1/2 left-3 min-h-11 min-w-11 -translate-y-1/2 rounded-full shadow"
                     onClick={() => setViewerIndex((viewerIndex - 1 + filtered.length) % filtered.length)}
                   >
                     <ChevronLeftIcon className="size-4" />
@@ -307,7 +303,7 @@ function PortraitsPage() {
                   <Button
                     variant="secondary"
                     size="icon"
-                    aria-label="下一张图片" className="absolute top-1/2 right-3 min-h-11 min-w-11 -translate-y-1/2 rounded-full shadow"
+                    aria-label={tr("下一张图片")} className="absolute top-1/2 right-3 min-h-11 min-w-11 -translate-y-1/2 rounded-full shadow"
                     onClick={() => setViewerIndex((viewerIndex + 1) % filtered.length)}
                   >
                     <ChevronRightIcon className="size-4" />
@@ -331,7 +327,7 @@ function PortraitsPage() {
                         type="button"
                         onClick={() => {
                           void navigator.clipboard.writeText(currentItem.id)
-                          toast.success('已复制人像 ID')
+                          toast.success(tr("已复制人像 ID"))
                         }}
                         className="ml-2 shrink-0 text-primary hover:underline"
                       >
@@ -340,34 +336,30 @@ function PortraitsPage() {
                     </div>
 
                     <dl className="grid grid-cols-[72px_1fr] gap-y-1.5 text-xs">
-                      <dt className="text-muted-foreground">发型款式</dt>
+                      <dt className="text-muted-foreground">{tr("发型款式")}</dt>
                       <dd className="font-medium">{currentItem.发型名称}</dd>
-                      <dt className="text-muted-foreground">原图尺寸</dt>
+                      <dt className="text-muted-foreground">{tr("原图尺寸")}</dt>
                       <dd className="font-medium">
                         {currentItem.宽} × {currentItem.高}
                       </dd>
-                      <dt className="text-muted-foreground">授权协议</dt>
-                      <dd className="font-medium text-emerald-600 dark:text-emerald-400">CC0 1.0 公共领域（可商用）</dd>
+                      <dt className="text-muted-foreground">{tr("授权协议")}</dt>
+                      <dd className="font-medium text-emerald-600 dark:text-emerald-400">{tr("CC0 1.0 公共领域（可商用）")}</dd>
                     </dl>
                   </div>
 
                   <div className="flex flex-col gap-2">
                     <Button onClick={() => togglePortrait(currentItem)} variant={picked ? 'secondary' : 'default'}>
                       {picked ? <CheckIcon className="size-4" /> : <PlusIcon className="size-4" />}
-                      {picked ? '已在角色配方中（点击移除）' : '加入角色配方'}
+                      {picked ? tr("已在角色配方中（点击移除）") : tr("加入角色配方")}
                     </Button>
                     <div className="grid grid-cols-2 gap-2">
                       <Button variant="outline" size="sm" asChild>
                         <a href={`/${currentItem.原图}`} download={`${currentItem.id}.webp`}>
-                          <DownloadIcon className="size-3.5" />
-                          下载高清原图
-                        </a>
+                          <DownloadIcon className="size-3.5" />{tr("下载高清原图")}</a>
                       </Button>
                       <Button variant="outline" size="sm" asChild>
                         <a href={`/${currentItem.原图}`} target="_blank" rel="noopener noreferrer">
-                          <ExternalLinkIcon className="size-3.5" />
-                          新窗口原图
-                        </a>
+                          <ExternalLinkIcon className="size-3.5" />{tr("新窗口原图")}</a>
                       </Button>
                     </div>
                   </div>

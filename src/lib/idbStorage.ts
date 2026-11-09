@@ -1,10 +1,11 @@
+import {getStorageScope} from './scoped-storage'
 const DB_NAME = 'pose_atlas_studio_db'
 const STORE_NAME = 'kv_store'
 const DB_VERSION = 1
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION)
+    const req = indexedDB.open(`${DB_NAME}:${getStorageScope()}`, DB_VERSION)
     req.onupgradeneeded = () => {
       const db = req.result
       if (!db.objectStoreNames.contains(STORE_NAME)) {

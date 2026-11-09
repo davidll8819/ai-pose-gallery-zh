@@ -1,3 +1,4 @@
+import {translate as tr,useLocale as useTranslatedUI} from '@/lib/locale'
 import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from 'react'
 import { MinusIcon, PlusIcon, RotateCcwIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,10 +16,14 @@ export interface ZoomViewportProps {
 
 /** Zoom is relative to fit, so 100% always shows the complete image. */
 export function ZoomViewport(props: ZoomViewportProps) {
+  useTranslatedUI()
+
   return <ZoomSurface key={`${props.imageUrl}|${props.resetKey}|${props.contentWidth}|${props.contentHeight}`} {...props} />
 }
 
 function ZoomSurface({ imageUrl, alt = '图片预览', children, contentWidth = 1000, contentHeight = 1400, className }: ZoomViewportProps) {
+  useTranslatedUI()
+
   const viewport = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ width: 1, height: 1 })
   const [natural, setNatural] = useState({ width: contentWidth, height: contentHeight })
@@ -71,11 +76,11 @@ function ZoomSurface({ imageUrl, alt = '图片预览', children, contentWidth = 
     return { x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2, distance: Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y) }
   }
   return <div className={cn('flex min-h-0 w-full flex-col gap-2', className)}>
-    <div className="flex shrink-0 flex-wrap items-center justify-center gap-2" aria-label="图片缩放控制">
-      <Button type="button" variant="outline" className="min-h-11 min-w-11" aria-label="缩小图片" disabled={view.zoom <= 1} onClick={() => zoomAt(current.current.zoom / 1.25)}><MinusIcon className="size-4" /></Button>
+    <div className="flex shrink-0 flex-wrap items-center justify-center gap-2" aria-label={tr("图片缩放控制")}>
+      <Button type="button" variant="outline" className="min-h-11 min-w-11" aria-label={tr("缩小图片")} disabled={view.zoom <= 1} onClick={() => zoomAt(current.current.zoom / 1.25)}><MinusIcon className="size-4" /></Button>
       <span className="min-w-16 text-center text-sm tabular-nums" aria-live="polite">{Math.round(view.zoom * 100)}%</span>
-      <Button type="button" variant="outline" className="min-h-11 min-w-11" aria-label="放大图片" disabled={view.zoom >= 8} onClick={() => zoomAt(current.current.zoom * 1.25)}><PlusIcon className="size-4" /></Button>
-      <Button type="button" variant="outline" className="min-h-11" onClick={reset}><RotateCcwIcon className="size-4" />适应窗口</Button>
+      <Button type="button" variant="outline" className="min-h-11 min-w-11" aria-label={tr("放大图片")} disabled={view.zoom >= 8} onClick={() => zoomAt(current.current.zoom * 1.25)}><PlusIcon className="size-4" /></Button>
+      <Button type="button" variant="outline" className="min-h-11" onClick={reset}><RotateCcwIcon className="size-4" />{tr("适应窗口")}</Button>
     </div>
     <div ref={viewport} tabIndex={0} role="region" aria-label={`${alt}；加减键缩放，方向键移动，0 键复位`}
       className="relative min-h-0 flex-1 overflow-hidden rounded-lg bg-muted/60 outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
@@ -111,10 +116,10 @@ function ZoomSurface({ imageUrl, alt = '图片预览', children, contentWidth = 
         {children ?? (imageUrl && !imageFailed && <img src={imageUrl} alt={alt} draggable={false} className="h-full w-full object-contain" onError={() => setImageFailed(true)} onLoad={(e) => { setNatural({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight }); reset() }} />)}
       </div>
       {!children && imageFailed && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/90 p-4 text-center" onPointerDown={(e) => e.stopPropagation()}>
-        <p role="status" className="text-sm text-muted-foreground">图片加载失败，请检查网络后重试。</p>
-        <Button type="button" variant="outline" className="min-h-11" onClick={() => { setImageFailed(false); viewport.current?.focus() }}>重新加载图片</Button>
+        <p role="status" className="text-sm text-muted-foreground">{tr("图片加载失败，请检查网络后重试。")}</p>
+        <Button type="button" variant="outline" className="min-h-11" onClick={() => { setImageFailed(false); viewport.current?.focus() }}>{tr("重新加载图片")}</Button>
       </div>}
     </div>
-    <p className="shrink-0 text-center text-xs text-muted-foreground">滚轮或双指缩放 · 放大后拖动 · 100% 为适应窗口</p>
+    <p className="shrink-0 text-center text-xs text-muted-foreground">{tr("滚轮或双指缩放 · 放大后拖动 · 100% 为适应窗口")}</p>
   </div>
 }

@@ -1,3 +1,4 @@
+import {translate as tr,useLocale as useTranslatedUI} from '@/lib/locale'
 import { useEffect } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -5,6 +6,8 @@ import { useStudio } from '@/store/studioStore'
 import { COMFY_CONNECTION_LABELS } from '@/store/useComfyConnection'
 
 export function ComfyConnectionStatus({ compact = false }: { compact?: boolean }) {
+  useTranslatedUI()
+
   const { comfyConnection, checkComfyConnection, setComfyConnectionVisible } = useStudio()
   useEffect(() => {
     setComfyConnectionVisible(true)
@@ -17,8 +20,8 @@ export function ComfyConnectionStatus({ compact = false }: { compact?: boolean }
     {!compact && <>
       {info && status === 'connected' && <span>{info}</span>}
       {error && <span className="break-words text-destructive">{error}</span>}
-      <span className="text-muted-foreground">{checkedAt ? `最近检测 ${new Date(checkedAt).toLocaleTimeString()}` : '尚无检测记录'}；HTTP 检测不代表任务 WebSocket 已连接</span>
+      <span className="text-muted-foreground">{checkedAt ? `最近检测 ${new Date(checkedAt).toLocaleTimeString()}` : tr("尚无检测记录")}{tr("；HTTP 检测不代表任务 WebSocket 已连接")}</span>
     </>}
-    <Button type="button" size="sm" variant="outline" className="min-h-11" disabled={status === 'checking'} onClick={() => void checkComfyConnection(true)}>检测连接</Button>
+    <Button type="button" size="sm" variant="outline" className="min-h-11" disabled={status === 'checking'} onClick={() => void checkComfyConnection(true)}>{tr("检测连接")}</Button>
   </div>
 }

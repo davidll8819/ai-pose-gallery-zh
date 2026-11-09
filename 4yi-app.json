@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "services": [{
+    "name": "web",
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "route": "public",
+    "port": 3000,
+    "healthPath": "/healthz",
+    "storage": {"sizeGb": 5, "mountPath": "/data", "fsGroup": 1000},
+    "resources": {"cpu": 1, "memoryMb": 1024}
+  }],
+  "models": [{"env":"IMAGE_MODEL","type":"image","default":"wan2.7-image-pro"}]
+}

@@ -1543,6 +1543,37 @@ export async function generateCharacterImage(params: {
   signal?: AbortSignal
 }): Promise<{ imageUrl: string; modelUsed: string; providerUsed: ImageProviderId }> {
   const { recipe, prompt, config, onProgress } = params
+  const runtimeResponse = await fetch('/api/runtime', {signal: params.signal})
+  const runtime = runtimeResponse.ok && runtimeResponse.headers.get('content-type')?.includes('application/json')
+    ? await runtimeResponse.json() : null
+  if (runtime?.platform) {
+    if (!runtime.configured) throw new Error('4yi 图像模型尚未配置 / Image model is not configured')
+    if (!recipe.portrait || !recipe.costume || !recipe.pose || recipe.extraImages?.length) {
+      throw new Error('请选择人像、服装、姿势三张独立参考图 / Select portrait, costume and pose references')
+    }
+    const images = await Promise.all([
+      recipe.portrait.原图 || recipe.portrait.缩略图,
+      recipe.costume.预览图 || recipe.costume.原图 || recipe.costume.缩略图,
+      poseImagePath(recipe.pose),
+    ].map(srcToPngDataUrl))
+    const created = await fetch('/api/jobs', {method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({requestId:crypto.randomUUID(),prompt, images, locale:document.documentElement.lang.startsWith('en')?'en':'zh-CN'}), signal:params.signal})
+    const job = await created.json()
+    if (!created.ok) throw new Error(job.error || 'generation_failed')
+    const cancel = () => { void fetch(`/api/jobs/${job.id}/cancel`, {method:'POST'}) }
+    params.signal?.addEventListener('abort', cancel, {once:true})
+    try {
+      for (;;) {
+        params.signal?.throwIfAborted()
+        const response = await fetch(`/api/jobs/${job.id}`, {signal:params.signal})
+        if (!response.ok) throw new Error('task_unavailable')
+        const current = await response.json()
+        if (current.status === 'completed') return current.result
+        if (['failed','cancelled'].includes(current.status)) throw new Error(current.error || current.status)
+        await new Promise(resolve => setTimeout(resolve, 1500))
+      }
+    } finally {params.signal?.removeEventListener('abort', cancel)}
+  }
   const provider = config.activeProvider
   const pCfg = config.providers[provider]
   const apiKey = pCfg.apiKey.trim()

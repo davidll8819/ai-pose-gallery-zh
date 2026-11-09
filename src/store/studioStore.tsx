@@ -1,3 +1,5 @@
+import {translate as tr,useLocale as useTranslatedUI} from '@/lib/locale'
+import {scopedStorage} from '@/lib/scoped-storage'
 import { createContext, type ReactNode, useContext, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { toast } from '@/lib/notifications'
 import { isNsfwCostume, isNsfwPose } from '@/api/gallery'
@@ -251,9 +253,11 @@ interface StudioContextValue {
 const StudioContext = createContext<StudioContextValue | null>(null)
 
 export function StudioProvider({ children }: { children: ReactNode }) {
+  useTranslatedUI()
+
   const [recipe, setRecipe] = useState<RecipeState>(() => {
     try {
-      const raw = localStorage.getItem(RECIPE_KEY)
+      const raw = scopedStorage.getItem(RECIPE_KEY)
       if (!raw) return { portrait: null, costume: null, pose: null, extraImages: [] }
       const parsed = JSON.parse(raw)
       return {
@@ -269,7 +273,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
 
   const [apiConfig, setApiConfig] = useState<ApiConfig>(() => {
     try {
-      const raw = localStorage.getItem(CFG_KEY)
+      const raw = scopedStorage.getItem(CFG_KEY)
       return raw ? mergeStoredConfig(JSON.parse(raw)) : DEFAULT_API_CONFIG
     } catch {
       return DEFAULT_API_CONFIG
@@ -278,7 +282,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
 
   const [history, setHistory] = useState<GenerationHistoryItem[]>(() => {
     try {
-      const raw = localStorage.getItem(HISTORY_KEY)
+      const raw = scopedStorage.getItem(HISTORY_KEY)
       return raw ? JSON.parse(raw) : []
     } catch {
       return []
@@ -290,7 +294,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
 
   const [safeMode, setSafeMode] = useState<boolean>(() => {
     try {
-      const raw = localStorage.getItem(SAFE_MODE_KEY)
+      const raw = scopedStorage.getItem(SAFE_MODE_KEY)
       return raw === null ? true : raw !== 'false'
     } catch {
       return true
@@ -306,7 +310,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
   const [customPrompt, setCustomPrompt] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string>(() => {
     try {
-      const raw = localStorage.getItem(HISTORY_KEY)
+      const raw = scopedStorage.getItem(HISTORY_KEY)
       const list = raw ? JSON.parse(raw) : []
       return list[0]?.imageUrl || ''
     } catch {
@@ -355,7 +359,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       activeTaskRef.current = savedTask || null
       setActiveTask(savedTask || null)
       setIdbHydrated(true)
-    }).catch(() => { if (active) toast.error('无法读取浏览器存储，已暂停生成以保护待确认任务；请恢复存储后刷新') })
+    }).catch(() => { if (active) toast.error(tr("无法读取浏览器存储，已暂停生成以保护待确认任务；请恢复存储后刷新")) })
     return () => {
       active = false
     }
@@ -363,10 +367,10 @@ export function StudioProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!idbHydrated) return
-    void idbWrite(RECIPE_KEY, recipe).catch(() => toast.error('配方保存失败，请检查浏览器存储空间'))
+    void idbWrite(RECIPE_KEY, recipe).catch(() => toast.error(tr("配方保存失败，请检查浏览器存储空间")))
     try {
       // 上传图片和附图完整保存在 IndexedDB，轻量备份不包含它们。
-      localStorage.setItem(
+      scopedStorage.setItem(
         RECIPE_KEY,
         JSON.stringify(recipeBackup(recipe))
       )
@@ -375,13 +379,13 @@ export function StudioProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(CFG_KEY, JSON.stringify(apiConfig))
+      scopedStorage.setItem(CFG_KEY, JSON.stringify(apiConfig))
     } catch {}
   }, [apiConfig])
 
   useEffect(() => {
     try {
-      localStorage.setItem(SAFE_MODE_KEY, String(safeMode))
+      scopedStorage.setItem(SAFE_MODE_KEY, String(safeMode))
     } catch {}
   }, [safeMode])
 
@@ -397,7 +401,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
   const confirmUnlockNsfw = () => {
     setSafeMode(false)
     setAgeGateOpen(false)
-    toast.success('已解锁 18+ 完整图库模式')
+    toast.success(tr("已解锁 18+ 完整图库模式"))
     const cb = pendingUnlockCbRef.current
     pendingUnlockCbRef.current = null
     cb?.()
@@ -408,7 +412,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       requestUnlockNsfw()
     } else {
       setSafeMode(true)
-      toast.success('已开启安全模式（已隐藏 18+ 敏感分类）')
+      toast.success(tr("已开启安全模式（已隐藏 18+ 敏感分类）"))
     }
   }
 
@@ -457,7 +461,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       ...r,
       extraImages: [...(r.extraImages || []), newImg],
     }))
-    toast.success('已添加附加参考图')
+    toast.success(tr("已添加附加参考图"))
   }
 
   const removeExtraImage = (id: string) => {
@@ -504,7 +508,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
 
   const clearRecipe = () => {
     setRecipe({ portrait: null, costume: null, pose: null, extraImages: [] })
-    toast.success('已清空配方')
+    toast.success(tr("已清空配方"))
   }
 
   const randomizeRecipe = (pools: { portraits?: PortraitItem[]; costumes?: CostumeItem[]; poses?: PoseItem[] }) => {
@@ -530,7 +534,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
   const randomizeSlot = (slot: ReferenceSlot, scope: RandomScope, pools: ReferencePools, expectedId?: string | null) => {
     const current = randomContext.current
     if (expectedId !== undefined && (current.recipe[slot]?.id ?? null) !== expectedId) {
-      toast.info('参考已更改，本次换样已取消')
+      toast.info(tr("参考已更改，本次换样已取消"))
       return
     }
     const next = randomSlot(current.recipe, slot, scope, {
@@ -600,20 +604,20 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     return write
   }
   const addHistory = (item: Omit<GenerationHistoryItem, 'id' | 'createdAt'>) => {
-    void persistHistory((current) => [{ ...item, id: crypto.randomUUID(), createdAt: Date.now() }, ...current].slice(0, 30)).catch(() => toast.error('历史记录保存失败'))
+    void persistHistory((current) => [{ ...item, id: crypto.randomUUID(), createdAt: Date.now() }, ...current].slice(0, 30)).catch(() => toast.error(tr("历史记录保存失败")))
   }
   const removeHistoryItem = (id: string) => {
-    void persistHistory((current) => current.filter((x) => x.id !== id)).then(() => toast.success('已删除该条记录')).catch(() => toast.error('删除失败'))
+    void persistHistory((current) => current.filter((x) => x.id !== id)).then(() => toast.success(tr("已删除该条记录"))).catch(() => toast.error(tr("删除失败")))
   }
   const clearHistory = () => {
-    void persistHistory(() => []).then(() => { localStorage.removeItem(HISTORY_KEY); toast.success('已清空记录') }).catch(() => toast.error('清空记录失败'))
+    void persistHistory(() => []).then(() => { scopedStorage.removeItem(HISTORY_KEY); toast.success(tr("已清空记录")) }).catch(() => toast.error(tr("清空记录失败")))
   }
 
   const refreshStitchPreview = async () => {
     try {
       const url = await stitchRecipeCanvas(recipe)
       setPreviewUrl(url)
-      toast.success('已合成参考拼图')
+      toast.success(tr("已合成参考拼图"))
     } catch (e) {
       toast.error(e instanceof Error ? e.message : '拼图失败')
     }
@@ -636,7 +640,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     })
     signal.throwIfAborted()
     await saveActive(null)
-    toast.success('角色图已完成并保存')
+    toast.success(tr("角色图已完成并保存"))
   }
   const resumeGeneration = async () => {
     const record = activeTaskRef.current
@@ -651,7 +655,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       controller.signal.throwIfAborted()
       await completeGeneration(result, record, controller.signal)
     } catch (e) {
-      if (e instanceof ComfySubmissionRejectedError || (e instanceof ComfyTaskError && e.reason === 'failed')) { try { await saveActive(null) } catch { toast.error('任务记录清除失败') } }
+      if (e instanceof ComfySubmissionRejectedError || (e instanceof ComfyTaskError && e.reason === 'failed')) { try { await saveActive(null) } catch { toast.error(tr("任务记录清除失败")) } }
       if (!controller.signal.aborted) setGenerationError(e instanceof Error ? e.message : '无法确认任务状态，记录已保留')
     }
     finally { isGeneratingRef.current = false; setIsGenerating(false) }
@@ -659,7 +663,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
   const stopTracking = async () => {
     trackingRef.current?.abort()
     try { await saveActive(null); setGenerationError('已停止跟踪；后端任务可能仍在执行，请先确认队列再提交新任务') }
-    catch { toast.error('停止跟踪记录保存失败') }
+    catch { toast.error(tr("停止跟踪记录保存失败")) }
   }
   const resumeOnActivation = useEffectEvent(() => { void resumeGeneration() })
   // 刷新、重新激活与恢复联网只查询已有任务，不重新提交。
@@ -676,7 +680,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
   useEffect(() => () => trackingRef.current?.abort(), [])
   const startGeneration = async (overridePrompt?: string) => {
     if (!idbHydrated || isGeneratingRef.current) return
-    if (activeTaskRef.current) { toast.error('存在待确认任务，请先恢复或明确停止跟踪'); return }
+    if (activeTaskRef.current) { toast.error(tr("存在待确认任务，请先恢复或明确停止跟踪")); return }
     const recipeSnapshot = recipe
     const configSnapshot = apiConfig
     const finalPrompt = overridePrompt ?? customPrompt ?? buildRecipePrompt(recipeSnapshot, configSnapshot.stylePreset, configSnapshot.activeProvider === 'comfyui' && recipeSnapshot.workflowImagesIdentity === workflowIdentity(configSnapshot.comfyuiParams.workflowJson) ? Object.values(recipeSnapshot.workflowImages || {}) : [])
@@ -711,7 +715,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       await completeGeneration(result, record, controller.signal)
     } catch (e) {
       if (e instanceof ComfySubmissionRejectedError || (e instanceof ComfyTaskError && e.reason === 'failed')) {
-        try { await saveActive(null) } catch { toast.error('任务失败记录未能清除，请停止跟踪后重试') }
+        try { await saveActive(null) } catch { toast.error(tr("任务失败记录未能清除，请停止跟踪后重试")) }
       }
       const msg = e instanceof Error ? e.message : '调用失败'
       setGenerationError(msg)
@@ -774,21 +778,14 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       <AlertDialog open={ageGateOpen} onOpenChange={setAgeGateOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>🔞 年龄确认与免责声明（NSFW 18+）</AlertDialogTitle>
+            <AlertDialogTitle>{tr("🔞 年龄确认与免责声明（NSFW 18+）")}</AlertDialogTitle>
             <AlertDialogDescription className="space-y-2 text-left leading-relaxed">
-              <span className="block">
-                关闭「安全模式 (SFW)」后，图库将显示包含成人向艺术参考的敏感分类：
-              </span>
+              <span className="block">{tr("关闭「安全模式 (SFW)」后，图库将显示包含成人向艺术参考的敏感分类：")}</span>
               <span className="block rounded-lg bg-muted p-2.5 text-xs text-foreground">
-                • <strong>动作姿势库</strong>：全身单人・性感系（399 张）、双人缠绵（275 张）
-                <br />• <strong>服装穿搭库</strong>：内衣・睡衣（199 套）、性感穿搭（140 套）
-              </span>
+                • <strong>{tr("动作姿势库")}</strong>{tr("：全身单人・性感系（399 张）、双人缠绵（275 张）")}<br />• <strong>{tr("服装穿搭库")}</strong>{tr("：内衣・睡衣（199 套）、性感穿搭（140 套）")}</span>
               <span className="block text-xs">
-                <strong>免责声明</strong>：
-                <br />1. <strong>年龄限制</strong>：未满 18 周岁的未成年人严禁关闭安全模式或浏览上述敏感分类。
-                <br />2. <strong>来源说明</strong>：原有图鉴素材来自 ギア（@giaaibusi）；二次元服装来自 たき AI · CharaDB，适用独立来源条件，禁止真人、未成年人用途及图片再分发，首次使用须确认。
-                <br />3. <strong>合法使用</strong>：本工具与素材<strong>仅供 AI 绘画学习与合法艺术创作使用，严禁用于任何违法违规、色情传播或侵害他人肖像权（如未经授权的真人换脸）等用途</strong>，使用者须自行承担一切法律责任。
-              </span>
+                <strong>{tr("免责声明")}</strong>：
+                <br />1. <strong>{tr("年龄限制")}</strong>{tr("：未满 18 周岁的未成年人严禁关闭安全模式或浏览上述敏感分类。")}<br />2. <strong>{tr("来源说明")}</strong>{tr("：原有图鉴素材来自 ギア（@giaaibusi）；二次元服装来自 たき AI · CharaDB，适用独立来源条件，禁止真人、未成年人用途及图片再分发，首次使用须确认。")}<br />3. <strong>{tr("合法使用")}</strong>{tr("：本工具与素材")}<strong>{tr("仅供 AI 绘画学习与合法艺术创作使用，严禁用于任何违法违规、色情传播或侵害他人肖像权（如未经授权的真人换脸）等用途")}</strong>{tr("，使用者须自行承担一切法律责任。")}</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -796,12 +793,8 @@ export function StudioProvider({ children }: { children: ReactNode }) {
               onClick={() => {
                 pendingUnlockCbRef.current = null
               }}
-            >
-              保持安全模式
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmUnlockNsfw}>
-              我已年满 18 岁并同意免责声明
-            </AlertDialogAction>
+            >{tr("保持安全模式")}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmUnlockNsfw}>{tr("我已年满 18 岁并同意免责声明")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
